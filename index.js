@@ -26,7 +26,7 @@ app.post('/slack/commands/pirate', async (req, res) => {
   const channelId = req.body.channel_id;
   const text = req.body.text;
 
-  // Respond immediately to Slack to avoid dispatch_failed
+  // Respond immediately to Slack
   if (!text || text.trim().length === 0) {
     res.send('⚓ Ahoy! Please provide some text to translate, e.g.: `/pirate Hello world`');
     return;
@@ -42,7 +42,7 @@ app.post('/slack/commands/pirate', async (req, res) => {
     );
     const pirateText = pirateResponse.data || "Arr! Something went wrong with me translation.";
 
-    // Post translation as bot
+    // Post translation to the same channel (works in channels or DMs)
     await slackClient.chat.postMessage({
       channel: channelId,
       text: `<@${userId}> says in pirate speak: ${pirateText}`
@@ -51,7 +51,8 @@ app.post('/slack/commands/pirate', async (req, res) => {
     console.log(`Posted translation for <@${userId}>: ${pirateText}`);
   } catch (err) {
     console.error('Error posting pirate translation:', err);
-    // Optional: notify channel of error
+
+    // Attempt to notify user/channel of failure
     try {
       await slackClient.chat.postMessage({
         channel: channelId,
