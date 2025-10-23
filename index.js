@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const slackClient = new WebClient(process.env.SLACK_BOT_TOKEN);
 
 // ------------------------------
-// Root route (for testing Render)
+// Root route for testing Render
 // ------------------------------
 app.get('/', (req, res) => {
   res.send('⚓ Pirate Bot is alive and sailing!');
@@ -19,16 +19,17 @@ app.get('/', (req, res) => {
 // ------------------------------
 // Slash command endpoint
 // ------------------------------
-app.post('/slack/commands/pirate', (req, res) => {
+app.post('/slack/commands/pirate', async (req, res) => {
   console.log('Received /pirate command:', req.body);
 
   const userId = req.body.user_id;
   const channelId = req.body.channel_id;
   const text = req.body.text;
 
-  // Respond immediately to Slack
+  // Respond immediately to Slack to avoid dispatch_failed
   if (!text || text.trim().length === 0) {
-    return res.send('⚓ Ahoy! Please provide some text to translate, e.g.: `/pirate Hello world`');
+    res.send('⚓ Ahoy! Please provide some text to translate, e.g.: `/pirate Hello world`');
+    return;
   } else {
     res.send('⚓ Pirate Bot is translating your message...');
   }
