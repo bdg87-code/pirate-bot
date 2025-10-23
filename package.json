@@ -1,1 +1,0 @@
-{\n  "name": "pirate-bot",\n  "version": "1.0.0",\n  "description": "A fun pirate-themed bot.",\n  "main": "index.js",\n  "scripts": {\n    "start": "node index.js"\n  },\n  "keywords": ["pirate", "bot"],\n  "author": "",\n  "license": "MIT"\n}
