@@ -49,4 +49,3 @@ app.post('/slack/commands/pirate', async (req, res) => {
 // Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Pirate Bot running on port ${port}`));
-
