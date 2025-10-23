@@ -15,29 +15,38 @@ app.post('/slack/commands/pirate', async (req, res) => {
   const channelId = req.body.channel_id;
   const text = req.body.text;
 
-  if (!text) return res.send('Ahoy! Ye need to give me some text to translate.');
+  // Respond immediately to Slack to prevent dispatch_failed
+  if (!text || text.trim().length === 0) {
+    return res.send('⚓ Ahoy! Please provide some text to translate, e.g.: `/pirate Hello world`');
+  } else {
+    res.send(`⚓ Pirate Bot is translating your message...`);
+  }
 
+  // Async translation and posting
   try {
-    // URL encode the text
+    // URL encode text for the Pirate Translator API
     const encodedText = encodeURIComponent(text);
+    const pirateResponse = await axios.get(
+      `https://pirate.monkeyness.com/api/translate?english=${encodedText}`
+    );
+    const pirateText = pirateResponse.data || "Arr! Something went wrong with me translation.";
 
-    // Call Pirate Monkeyness API
-    const pirateResponse = await axios.get(`https://pirate.monkeyness.com/api/translate?english=${encodedText}`);
-    const pirateText = pirateResponse.data; // API returns raw text
-
-    // Post to Slack as Pirate Bot
+    // Post translated message as bot
     await slackClient.chat.postMessage({
       channel: channelId,
       text: `<@${userId}> says in pirate speak: ${pirateText}`
     });
-
-    res.send('⚓ Your message has been translated and posted!');
-
   } catch (err) {
-    console.error(err);
-    res.send('☠️ Arr! Something went wrong with the translation.');
+    console.error('Error posting pirate translation:', err);
+    // Optionally: notify the channel of error
+    await slackClient.chat.postMessage({
+      channel: channelId,
+      text: `☠️ Arr! Failed to translate message for <@${userId}>.`
+    });
   }
 });
 
+// Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Pirate Bot running on port ${port}`));
+
