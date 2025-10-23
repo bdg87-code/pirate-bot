@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const slackClient = new WebClient(process.env.SLACK_BOT_TOKEN);
 
-// Root route for testing Render
+// Root route to confirm Render app is alive
 app.get('/', (req, res) => {
   res.send('⚓ Pirate Bot is alive and sailing!');
 });
@@ -22,7 +22,7 @@ app.post('/slack/commands/pirate', async (req, res) => {
   const channelId = req.body.channel_id;
   const text = req.body.text;
 
-  // Respond immediately to Slack
+  // Immediate response to Slack (prevents dispatch_failed)
   if (!text || text.trim().length === 0) {
     res.send('⚓ Ahoy! Please provide some text to translate, e.g.: `/pirate Hello world`');
     return;
@@ -30,44 +30,42 @@ app.post('/slack/commands/pirate', async (req, res) => {
     res.send('⚓ Pirate Bot is translating your message...');
   }
 
-  // Async translation and posting
+  // Async: fetch translation and post to Slack
   try {
     const encodedText = encodeURIComponent(text);
-    console.log('Sending text to Pirate API:', text);
+    console.log('Sending to Pirate API:', text);
 
     const pirateResponse = await axios.get(
       `https://pirate.monkeyness.com/api/translate?english=${encodedText}`
     );
 
-    console.log('Pirate API raw response:', pirateResponse.data);
+    console.log('Pirate API returned:', pirateResponse.data);
 
-    const pirateText = pirateResponse.data || "Arr! Something went wrong with me translation.";
-    console.log('Final pirateText to post:', pirateText);
+    const pirateText = pirateResponse.data || 'Arr! Something went wrong with the translation.';
+    console.log('Posting to Slack channel:', channelId);
 
-    // Post translation to the same channel (works in channels or DMs)
     const result = await slackClient.chat.postMessage({
       channel: channelId,
       text: `<@${userId}> says in pirate speak: ${pirateText}`
     });
 
     console.log('Slack postMessage result:', result);
-    console.log(`Posted translation for <@${userId}>: ${pirateText}`);
 
   } catch (err) {
     console.error('Error during translation or posting:', err);
 
-    // Attempt to notify user/channel of failure
+    // Attempt to notify Slack channel of failure
     try {
       await slackClient.chat.postMessage({
         channel: channelId,
         text: `☠️ Arr! Failed to translate message for <@${userId}>.`
       });
     } catch (postErr) {
-      console.error('Failed to notify channel of error:', postErr);
+      console.error('Failed to notify Slack channel of error:', postErr);
     }
   }
 });
 
-// Start server
+// Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Pirate Bot running on port ${port}`));
