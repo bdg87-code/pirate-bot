@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 // ------------------------------
 // Slash command endpoint
 // ------------------------------
-app.post('/slack/commands/pirate', async (req, res) => {
+app.post('/slack/commands/pirate', (req, res) => {
   console.log('Received /pirate command:', req.body);
 
   const userId = req.body.user_id;
